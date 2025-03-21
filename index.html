@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>饭圈话术生成器 & 弹幕墙</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="online-counter">
+                <span>在线人数：</span>
+                <span id="onlineCount">1</span>
+            </div>
+            <h1>饭圈话术生成器 & 弹幕墙</h1>
+        </header>
+
+        <div class="content">
+            <div class="danmu-section">
+                <div id="danmuWall" class="danmu-wall"></div>
+                <div class="danmu-control">
+                    <input type="text" id="danmuInput" placeholder="输入弹幕内容">
+                    <input type="color" id="colorPicker" value="#ffffff">
+                    <button id="danmuSendBtn">发送弹幕</button>
+                </div>
+            </div>
+
+            <div class="generator-section">
+                <div class="chat-container">
+                    <div id="chatHistory" class="chat-history">
+                        <!-- 聊天记录将在这里动态显示 -->
+                    </div>
+                    <div class="chat-input">
+                        <textarea id="userInput" placeholder="输入你想说的话..."></textarea>
+                        <button id="sendChatBtn" class="chat-send-btn">发送</button>
+                    </div>
+                </div>
+                <div class="quick-actions">
+                    <button class="type-btn" data-type="rainbow">生成彩虹屁</button>
+                    <button class="type-btn" data-type="cheer">生成打call</button>
+                    <button class="type-btn" data-type="slang">生成黑话</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html> 
