@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 require('dotenv').config();
+const WebSocket = require('ws');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -20,6 +21,27 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+const wss = new WebSocket.Server({ server: app.listen(PORT) });
+
+wss.on('connection', (ws) => {
+    ws.on('message', (message) => {
+        try {
+            const data = JSON.parse(message);
+            
+            if (data.type === 'danmu') {
+                // 广播弹幕给所有连接的客户端
+                wss.clients.forEach(client => {
+                    if (client.readyState === WebSocket.OPEN) {
+                        client.send(JSON.stringify({
+                            type: 'danmu',
+                            text: data.text,
+                            color: data.color
+                        }));
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('消息处理错误:', error);
+        }
+    });
 }); 

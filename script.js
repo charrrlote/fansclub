@@ -470,6 +470,31 @@ class DanmuSystem {
     constructor() {
         this.initElements();
         this.initEventListeners();
+        this.connectWebSocket();
+    }
+
+    connectWebSocket() {
+        // 连接到 WebSocket 服务器
+        const wsUrl = 'wss://你的服务器地址/';  // 需要替换为实际部署的服务器地址
+        this.ws = new WebSocket(wsUrl);
+
+        this.ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (data.type === 'danmu') {
+                    // 收到其他用户的弹幕
+                    this.showDanmu(data.text, data.color);
+                }
+            } catch (error) {
+                console.error('WebSocket 消息解析错误:', error);
+            }
+        };
+
+        // 断线重连
+        this.ws.onclose = () => {
+            console.log('WebSocket 连接断开，尝试重连...');
+            setTimeout(() => this.connectWebSocket(), 3000);
+        };
     }
 
     initElements() {
@@ -505,25 +530,42 @@ class DanmuSystem {
 
     sendDanmu() {
         const text = this.elements.input.value.trim();
+        const color = this.elements.colorPicker.value;
+        
         if (!text) return;
 
-        const danmu = this.createDanmuElement(text);
-        this.elements.wall.appendChild(danmu);
-        this.elements.input.value = '';
+        // 发送弹幕到服务器
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            this.ws.send(JSON.stringify({
+                type: 'danmu',
+                text: text,
+                color: color
+            }));
+        }
 
+        // 清空输入框
+        this.elements.input.value = '';
+    }
+
+    showDanmu(text, color) {
+        const danmu = this.createDanmuElement(text, color);
+        this.elements.wall.appendChild(danmu);
+        
         danmu.addEventListener('animationend', () => {
-            this.elements.wall.removeChild(danmu);
+            if (this.elements.wall.contains(danmu)) {
+                this.elements.wall.removeChild(danmu);
+            }
         });
     }
 
-    createDanmuElement(text) {
+    createDanmuElement(text, color) {
         const danmu = document.createElement('div');
         danmu.className = 'danmu';
         danmu.textContent = text;
-        danmu.style.color = this.elements.colorPicker?.value || '#ffffff';
+        danmu.style.color = color;
         
         // 计算弹幕显示高度，避开输入区域
-        const maxHeight = this.elements.wall.clientHeight - 80; // 预留输入框高度
+        const maxHeight = this.elements.wall.clientHeight - 80;
         danmu.style.top = `${Math.random() * maxHeight}px`;
 
         // 根据文本长度设置动画速度
@@ -541,7 +583,7 @@ class DanmuSystem {
 
     sendCustomDanmu(text) {
         if (!text) return;
-        const danmu = this.createDanmuElement(text);
+        const danmu = this.createDanmuElement(text, this.elements.colorPicker.value);
         this.elements.wall.appendChild(danmu);
         
         // 移除已完成动画的弹幕
